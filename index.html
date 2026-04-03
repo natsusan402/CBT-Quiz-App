@@ -506,29 +506,41 @@ let dragSrc=null,timerInterval=null,timerLeft=0;
 // ══════════════════════════════════════
 //  GAS JSONP
 // ══════════════════════════════════════
-function fetchSheet(gasUrl,name){
-  return new Promise((resolve,reject)=>{
-    const cb='__gasCb_'+Date.now();
-    const timer=setTimeout(()=>{cleanup();reject(new Error('network:timeout'));},12000);
-    function cleanup(){
-      clearTimeout(timer);delete window[cb];
-      const s=document.getElementById('__gasScript');if(s)s.remove();
-    }
-    window[cb]=function(data){
+function fetchSheet(gasUrl, name){
+  return new Promise((resolve, reject) => {
+    const cb = '__gasCb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    // scriptタグIDもコールバック名ごとにユニーク化
+    const scriptId = '__gasScript_' + cb;
+    const timer = setTimeout(() => {
       cleanup();
-      if(data&&data.error){reject(new Error('gas:'+data.error));return;}
-      if(!Array.isArray(data)){reject(new Error('parse'));return;}
-      const rows=data.slice(1)
-        .filter(r=>r.some(c=>String(c).trim()))
-        .map(r=>r.map(c=>String(c).trim()));
-      if(!rows.length){reject(new Error('no-rows'));return;}
+      reject(new Error('network:timeout'));
+    }, 15000);
+
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cb];
+      const s = document.getElementById(scriptId);
+      if(s) s.remove();
+    }
+
+    window[cb] = function(data){
+      cleanup();
+      if(data && data.error){ reject(new Error('gas:' + data.error)); return; }
+      if(!Array.isArray(data)){ reject(new Error('parse')); return; }
+      const rows = data.slice(1)
+        .filter(r => r.some(c => String(c).trim()))
+        .map(r => r.map(c => String(c).trim()));
+      // 空シートはエラーではなく空配列として返す
       resolve(rows);
     };
-    let url=`${gasUrl}?callback=${cb}`;
-    if(name)url+=`&sheet=${encodeURIComponent(name)}`;
-    const script=document.createElement('script');
-    script.id='__gasScript';script.src=url;
-    script.onerror=()=>{cleanup();reject(new Error('network:script load failed'));};
+
+    let url = `${gasUrl}?callback=${cb}`;
+    if(name) url += `&sheet=${encodeURIComponent(name)}`;
+
+    const script = document.createElement('script');
+    script.id = scriptId;
+    script.src = url;
+    script.onerror = () => { cleanup(); reject(new Error('network:script load failed')); };
     document.head.appendChild(script);
   });
 }
@@ -625,11 +637,36 @@ function loadDemo(){beginSession(shuffle(DEMO).slice(0,Math.min(8,DEMO.length)))
 // 各シートの出題割合（合計1.0）
 const SHEET_RATIOS = [0.25, 0.20, 0.20, 0.15, 0.10, 0.10];
 
-// 按分計算（四捨五入のみ・合計多少ずれてもOK）
+// 按分計算（合計が totalCnt に一致するよう補填あり）
 function calcAllocations(totalCnt, ratios, available){
-  return ratios.map((r, i) =>
-    Math.min(Math.round(r * totalCnt), available[i])
-  );
+  const n = ratios.length;
+  // 有効シート（問題が1問以上あるもの）の割合を正規化して割り当て
+  let alloc = new Array(n).fill(0);
+  let remaining = totalCnt;
+
+  // パス1: 割合に応じた理想値を計算し、上限でクランプ
+  const ideal = ratios.map((r, i) => Math.min(Math.round(r * totalCnt), available[i]));
+  let allocated = ideal.reduce((s, v) => s + v, 0);
+
+  // パス2: 不足分を「まだ余裕のあるシート」に追加配分（割合の大きい順）
+  alloc = [...ideal];
+  let deficit = totalCnt - allocated;
+
+  if(deficit > 0){
+    // 割合の大きい順にインデックスを並べる
+    const order = ratios.map((_,i)=>i).sort((a,b)=>ratios[b]-ratios[a]);
+    for(const i of order){
+      if(deficit <= 0) break;
+      const canAdd = available[i] - alloc[i];
+      if(canAdd > 0){
+        const add = Math.min(canAdd, deficit);
+        alloc[i] += add;
+        deficit -= add;
+      }
+    }
+  }
+
+  return alloc;
 }
 
 async function startQuiz(){
