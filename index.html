@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT CBT Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080b12;--surface:#0f1420;--surface2:#161d2e;--surface3:#1c2540;
+  --border:#232d45;--border2:#2e3a58;
+  --accent:#3b82f6;--accent2:#6366f1;--accent3:#0ea5e9;
+  --success:#10b981;--danger:#ef4444;--warning:#f59e0b;
+  --text:#e2e8f0;--text2:#7e92b8;--text3:#3d4f72;
+  --radius:14px;--rsm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(59,130,246,.08) 0%,transparent 70%);}
+header{width:100%;background:rgba(8,11,18,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;height:56px;}
+.logo{font-family:'JetBrains Mono',monospace;font-size:1.05rem;font-weight:600;letter-spacing:.08em;background:linear-gradient(90deg,var(--accent3),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;}
+.logo-sub{font-size:.68rem;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+#hdr-quiz{display:none;align-items:center;gap:10px;}
+.hdr-chip{font-size:.72rem;font-family:'JetBrains Mono',monospace;padding:4px 12px;border-radius:100px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
+.hdr-chip.num-chip{color:var(--accent3);border-color:rgba(14,165,233,.3);background:rgba(14,165,233,.07);}
+#hdr-timer{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:600;padding:5px 14px;border-radius:100px;background:var(--surface2);border:1px solid var(--border);color:var(--text);min-width:80px;text-align:center;transition:all .3s;}
+#hdr-timer.warn{color:var(--warning);border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.08);}
+#hdr-timer.danger{color:var(--danger);border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08);animation:pulse .8s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+#hdr-badge{font-size:.72rem;font-family:'JetBrains Mono',monospace;padding:4px 12px;border-radius:100px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
+main{width:100%;max-width:880px;padding:28px 16px 64px;flex:1;}
+
+/* SETUP */
+#setup-screen{display:flex;flex-direction:column;gap:18px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px;}
+.card-title{font-size:.92rem;font-weight:700;margin-bottom:4px;}
+.card-desc{font-size:.79rem;color:var(--text2);line-height:1.75;margin-bottom:18px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:.75rem;color:var(--text2);margin-bottom:5px;font-family:'JetBrains Mono',monospace;letter-spacing:.03em;}
+input[type=text],input[type=number],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 13px;color:var(--text);font-size:.88rem;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;}
+input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.err{color:var(--danger);font-size:.76rem;margin-top:6px;display:none;line-height:1.6;}
+code{font-family:'JetBrains Mono',monospace;color:var(--accent3);background:rgba(14,165,233,.08);padding:1px 5px;border-radius:3px;font-size:.7rem;}
+.tab-bar{display:flex;gap:2px;background:var(--surface2);border-radius:8px;padding:3px;margin-bottom:14px;width:fit-content;flex-wrap:wrap;}
+.tab-btn{font-size:.74rem;padding:5px 13px;border-radius:6px;border:none;background:none;color:var(--text2);cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .15s;}
+.tab-btn.active{background:var(--surface3);color:var(--text);font-weight:600;}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+.fmt-table{width:100%;border-collapse:collapse;font-size:.74rem;}
+.fmt-table th{text-align:left;padding:5px 9px;color:var(--accent);font-family:'JetBrains Mono',monospace;border-bottom:1px solid var(--border);font-weight:500;}
+.fmt-table td{padding:5px 9px;border-bottom:1px solid rgba(35,45,69,.4);color:var(--text2);line-height:1.5;}
+.fmt-table td:first-child{font-family:'JetBrains Mono',monospace;color:var(--accent3);font-size:.7rem;}
+.fmt-table tr:last-child td{border-bottom:none;}
+.fmt-note{font-size:.7rem;color:var(--text3);margin-top:8px;line-height:1.75;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--rsm);padding:10px 20px;font-size:.86rem;font-weight:600;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:all .18s;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 14px rgba(59,130,246,.28);}
+.btn-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 22px rgba(59,130,246,.38);}
+.btn-primary:disabled{opacity:.35;cursor:default;transform:none;}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--surface3);color:var(--text);border-color:var(--border2);}
+.btn-lg{padding:12px 26px;font-size:.92rem;border-radius:10px;}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+
+/* QUIZ */
+#quiz-screen{display:none;flex-direction:column;gap:16px;}
+.prog-bar-bg{height:4px;background:var(--surface2);border-radius:100px;overflow:hidden;}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent3),var(--accent2));border-radius:100px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px;}
+.q-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.q-pill{font-size:.66rem;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:100px;letter-spacing:.06em;font-weight:500;}
+.pill-c{background:rgba(59,130,246,.12);color:var(--accent);border:1px solid rgba(59,130,246,.22);}
+.pill-m{background:rgba(99,102,241,.12);color:var(--accent2);border:1px solid rgba(99,102,241,.22);}
+.pill-d{background:rgba(14,165,233,.12);color:var(--accent3);border:1px solid rgba(14,165,233,.22);}
+.q-num-lbl{font-size:.66rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.q-text{font-size:1rem;font-weight:500;line-height:1.82;color:var(--text);margin-bottom:16px;}
+.q-inst{font-size:.76rem;color:var(--warning);margin-bottom:14px;display:flex;align-items:center;gap:6px;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.15);border-radius:6px;padding:7px 12px;}
+.q-img{width:100%;max-height:320px;object-fit:contain;border-radius:var(--rsm);margin-bottom:16px;border:1px solid var(--border);background:var(--surface2);}
+
+/* CHOICES */
+.choices{display:flex;flex-direction:column;gap:8px;}
+.choice-btn{display:flex;align-items:flex-start;gap:12px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 15px;cursor:pointer;text-align:left;color:var(--text);font-size:.88rem;font-family:'Noto Sans JP',sans-serif;line-height:1.65;width:100%;transition:all .15s;}
+.choice-btn:hover:not(:disabled){border-color:var(--accent);background:rgba(59,130,246,.05);}
+.choice-btn:disabled{cursor:default;}
+.choice-content{display:flex;flex-direction:column;flex:1;min-width:0;}
+.choice-img{width:100%;max-height:160px;object-fit:contain;border-radius:6px;margin-top:8px;border:1px solid var(--border);}
+.ck{font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:600;min-width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;background:var(--border);color:var(--text2);flex-shrink:0;transition:all .15s;margin-top:2px;}
+.choice-btn.sel{border-color:var(--accent);background:rgba(59,130,246,.07);}
+.choice-btn.sel .ck{background:var(--accent);color:#fff;}
+.chk{min-width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border2);background:var(--surface3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:3px;transition:all .15s;font-size:.7rem;color:transparent;font-weight:700;}
+.choice-btn.sel .chk{background:var(--accent2);border-color:var(--accent2);color:#fff;}
+
+/* DnD */
+.dnd-area{display:flex;flex-direction:column;gap:16px;}
+.dnd-sec-lbl{font-size:.66rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:'JetBrains Mono',monospace;margin-bottom:7px;}
+.dnd-bank{display:flex;flex-wrap:wrap;gap:7px;min-height:50px;background:var(--surface2);border:1.5px dashed var(--border2);border-radius:10px;padding:9px;transition:border-color .2s;}
+.dnd-bank.drag-over{border-color:var(--accent);}
+.dnd-targets{display:flex;flex-direction:column;gap:7px;}
+.dnd-row{display:flex;align-items:center;gap:9px;}
+.dnd-lbl{min-width:140px;font-size:.83rem;color:var(--text2);line-height:1.4;flex-shrink:0;}
+.dnd-zone{flex:1;min-height:40px;background:var(--surface2);border:1.5px dashed var(--border2);border-radius:8px;padding:5px 10px;display:flex;align-items:center;flex-wrap:wrap;gap:5px;transition:all .15s;position:relative;}
+.dnd-zone.drag-over{border-color:var(--accent);background:rgba(59,130,246,.05);}
+.dnd-zone.zone-ok{border-color:var(--success);background:rgba(16,185,129,.06);}
+.dnd-zone.zone-ng{border-color:var(--danger);background:rgba(239,68,68,.06);}
+.dnd-zone .ph{font-size:.7rem;color:var(--text3);position:absolute;pointer-events:none;user-select:none;padding:0 4px;}
+.dnd-chip{background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(99,102,241,.12));border:1px solid rgba(59,130,246,.25);color:var(--text);border-radius:6px;padding:4px 11px;font-size:.81rem;cursor:grab;user-select:none;transition:all .14s;white-space:nowrap;}
+.dnd-chip:hover:not(.locked){border-color:var(--accent);transform:translateY(-1px);box-shadow:0 3px 9px rgba(59,130,246,.17);}
+.dnd-chip.dragging{opacity:.35;}
+.dnd-chip.locked{cursor:default;}
+.action-row{display:flex;justify-content:flex-end;gap:10px;}
+
+/* RESULT */
+#result-screen{display:none;flex-direction:column;gap:22px;}
+.result-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:30px;display:flex;flex-direction:column;align-items:center;gap:18px;}
+.result-ring{width:140px;height:140px;position:relative;display:flex;align-items:center;justify-content:center;}
+.result-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
+.res-pct{font-family:'JetBrains Mono',monospace;font-size:2.3rem;font-weight:600;z-index:1;}
+.res-pct span{font-size:.9rem;color:var(--text2);}
+.res-grade{font-size:1rem;font-weight:700;padding:5px 18px;border-radius:100px;}
+.gs{background:rgba(16,185,129,.15);color:var(--success);border:1px solid rgba(16,185,129,.3);}
+.ga{background:rgba(59,130,246,.15);color:var(--accent);border:1px solid rgba(59,130,246,.3);}
+.gb{background:rgba(245,158,11,.15);color:var(--warning);border:1px solid rgba(245,158,11,.3);}
+.gc{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3);}
+.res-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;width:100%;}
+.rstat{background:var(--surface2);border-radius:10px;padding:13px 15px;display:flex;flex-direction:column;gap:2px;}
+.rstat-val{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:600;}
+.rv-ok{color:var(--success);}.rv-ng{color:var(--danger);}.rv-sk{color:var(--warning);}.rv-t{color:var(--accent3);}
+.rstat-lbl{font-size:.7rem;color:var(--text2);}
+.review-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;}
+.review-section h3{font-size:.88rem;margin-bottom:14px;color:var(--text2);}
+.rev-list{display:flex;flex-direction:column;gap:12px;}
+.rev-item{background:var(--surface2);border-radius:10px;overflow:hidden;border-left:3px solid transparent;}
+.rev-item.ok{border-color:var(--success);}.rev-item.ng{border-color:var(--danger);}
+.rev-header{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;user-select:none;}
+.rev-icon{font-size:.85rem;flex-shrink:0;}
+.rev-qtext{color:var(--text2);line-height:1.45;flex:1;font-size:.8rem;}
+.rev-type-tag{font-size:.63rem;font-family:'JetBrains Mono',monospace;padding:1px 7px;border-radius:100px;background:var(--surface3);color:var(--text3);flex-shrink:0;}
+.rev-chevron{font-size:.7rem;color:var(--text3);flex-shrink:0;transition:transform .2s;}
+.rev-item.open .rev-chevron{transform:rotate(90deg);}
+.rev-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--border);}
+.rev-item.open .rev-detail{display:block;}
+.rev-choices{display:flex;flex-direction:column;gap:5px;margin-top:10px;}
+.rev-choice{display:flex;align-items:flex-start;gap:9px;border-radius:7px;padding:8px 11px;font-size:.8rem;line-height:1.55;border:1px solid transparent;}
+.rev-choice.rk-ok{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.3);color:var(--text);}
+.rev-choice.rk-ng{background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.3);color:var(--text);}
+.rev-choice.rk-neu{background:var(--surface3);color:var(--text2);}
+.rev-choice .ck-sm{font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:600;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;background:var(--border);color:var(--text2);flex-shrink:0;}
+.rev-choice.rk-ok .ck-sm{background:var(--success);color:#fff;}
+.rev-choice.rk-ng .ck-sm{background:var(--danger);color:#fff;}
+.rev-img{width:100%;max-height:200px;object-fit:contain;border-radius:6px;margin-top:8px;border:1px solid var(--border);}
+.rev-dnd-list{display:flex;flex-direction:column;gap:5px;margin-top:10px;}
+.rev-dnd-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.rev-dnd-lbl{color:var(--text2);min-width:130px;font-size:.78rem;}
+.rev-dnd-val{padding:3px 10px;border-radius:5px;font-size:.78rem;}
+.rev-dnd-val.ok{background:rgba(16,185,129,.1);color:var(--success);border:1px solid rgba(16,185,129,.25);}
+.rev-dnd-val.ng{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.25);}
+.rev-exp{font-size:.78rem;color:var(--text2);line-height:1.72;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.rev-exp strong{color:var(--accent3);}
+/* ── ADMIN MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:200;}
+.modal-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:16px;}
+.modal-title{font-size:.95rem;font-weight:700;}
+.modal-desc{font-size:.8rem;color:var(--text2);line-height:1.65;}
+.modal-err{font-size:.76rem;color:var(--danger);display:none;}
+.admin-badge{font-size:.68rem;font-family:'JetBrains Mono',monospace;padding:2px 9px;border-radius:100px;background:rgba(99,102,241,.15);color:var(--accent2);border:1px solid rgba(99,102,241,.3);margin-left:6px;}
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 18px;font-size:.8rem;transition:transform .26s ease;z-index:999;pointer-events:none;white-space:nowrap;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+.spinner{width:17px;height:17px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.anim{animation:fadeUp .3s ease both;}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">IT-CBT</div>
+    <div class="logo-sub">情報処理試験対策</div>
+  </div>
+  <div class="header-right">
+    <div id="hdr-quiz">
+      <div class="hdr-chip num-chip" id="hdr-qnum">1 / 10</div>
+      <div id="hdr-timer">--:--</div>
+    </div>
+    <button id="hdr-admin-btn" class="btn btn-ghost" style="padding:4px 12px;font-size:.72rem;display:none;" onclick="toggleAdminMode()"></button>
+    <div id="hdr-badge">STANDBY</div>
+  </div>
+</header>
+
+<main>
+<!-- ══════════ SETUP ══════════ -->
+<div id="setup-screen">
+
+  <!-- ユーザーに見せる：試験開始カード（タイマー＋開始ボタンのみ） -->
+  <div class="card anim" id="user-start-card">
+    <div class="card-title">🎯 試験を開始する</div>
+    <div id="user-not-configured" style="display:none;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);border-radius:var(--rsm);padding:12px 16px;font-size:.8rem;color:var(--warning);margin-bottom:16px;">
+      ⚠️ まだ設定が完了していません。管理者モードでGAS URLを設定してください。
+    </div>
+    <div class="grid3" style="margin-bottom:20px;">
+      <div class="field" style="margin-bottom:0"><label>時間（分）</label><input type="number" id="timer-min" value="30" min="0" max="300"></div>
+      <div class="field" style="margin-bottom:0"><label>秒</label><input type="number" id="timer-sec" value="0" min="0" max="59"></div>
+      <div class="field" style="margin-bottom:0"><label>備考</label><input type="text" value="0分0秒＝タイマーなし" disabled style="color:var(--text3);cursor:default;font-size:.76rem;"></div>
+    </div>
+    <button class="btn btn-primary btn-lg" id="start-btn" onclick="startQuiz()" style="width:100%;">
+      <span id="start-label">▶ 試験を開始する</span>
+    </button>
+    <div class="err" id="url-err" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- 管理者のみ：GAS・フォーマット設定（初期非表示） -->
+  <div id="admin-zone" style="display:none;flex-direction:column;gap:18px;">
+
+    <div class="card anim">
+      <div class="card-title">📡 Google スプレッドシート連携（GAS経由）</div>
+      <div class="card-desc">ブラウザのセキュリティ制限のため、<strong>Google Apps Script（GAS）をプロキシとして使用</strong>します。以下の手順でGASを設定し、発行されたURLを貼り付けてください。</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:16px 18px;margin-bottom:16px;font-size:.8rem;line-height:2;">
+        <div style="font-weight:700;color:var(--accent3);margin-bottom:8px;">⚙️ GAS セットアップ手順（初回のみ）</div>
+        <ol style="padding-left:1.2em;color:var(--text2);display:flex;flex-direction:column;gap:4px;">
+          <li>スプレッドシートのメニュー <strong style="color:var(--text)">「拡張機能」→「Apps Script」</strong> を開く</li>
+          <li>エディタの既存コードを全削除し、下の「コピー」ボタンでコードをコピーして貼り付ける</li>
+          <li><strong style="color:var(--text)">「デプロイ」→「新しいデプロイ」</strong>：種類＝ウェブアプリ、次のユーザーとして実行＝自分、アクセスできるユーザー＝<strong style="color:var(--text)">全員（匿名ユーザーを含む）</strong></li>
+          <li>発行された <strong style="color:var(--text)">ウェブアプリURL</strong> を下の欄に貼り付ける</li>
+          <li>コードを変更した場合：「デプロイを管理」→編集→<strong style="color:var(--text)">新しいバージョン</strong>で再デプロイ</li>
+        </ol>
+      </div>
+      <div style="position:relative;margin-bottom:16px;">
+        <div style="font-size:.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:6px;">GAS コード</div>
+        <textarea id="gas-code" readonly rows="14" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:13px 15px;font-family:'JetBrains Mono',monospace;font-size:.71rem;color:var(--text2);line-height:1.7;resize:none;outline:none;"></textarea>
+        <button class="btn btn-ghost" onclick="copyGasCode()" style="position:absolute;top:28px;right:8px;padding:5px 12px;font-size:.72rem;">コピー</button>
+      </div>
+      <div class="field">
+        <label>GAS ウェブアプリ URL</label>
+        <input type="text" id="sheet-url" placeholder="https://script.google.com/macros/s/xxxxx/exec" oninput="saveAdminSettings()">
+      </div>
+
+      <!-- 6シート設定 -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:.75rem;color:var(--text2);margin-bottom:10px;font-family:'JetBrains Mono',monospace;letter-spacing:.03em;">
+          分野別シート設定（シート名が空欄の場合そのシートはスキップ）
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;" id="sheet-config-grid">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;">
+            <div style="font-size:.7rem;color:var(--accent3);font-family:'JetBrains Mono',monospace;margin-bottom:6px;">シート1 <span style="color:var(--text3)">25%</span></div>
+            <input type="text" id="sname-0" placeholder="Sheet1" oninput="saveAdminSettings()" style="margin-bottom:0;font-size:.8rem;">
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;">
+            <div style="font-size:.7rem;color:var(--accent3);font-family:'JetBrains Mono',monospace;margin-bottom:6px;">シート2 <span style="color:var(--text3)">20%</span></div>
+            <input type="text" id="sname-1" placeholder="Sheet2" oninput="saveAdminSettings()" style="margin-bottom:0;font-size:.8rem;">
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;">
+            <div style="font-size:.7rem;color:var(--accent3);font-family:'JetBrains Mono',monospace;margin-bottom:6px;">シート3 <span style="color:var(--text3)">20%</span></div>
+            <input type="text" id="sname-2" placeholder="Sheet3" oninput="saveAdminSettings()" style="margin-bottom:0;font-size:.8rem;">
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;">
+            <div style="font-size:.7rem;color:var(--accent3);font-family:'JetBrains Mono',monospace;margin-bottom:6px;">シート4 <span style="color:var(--text3)">15%</span></div>
+            <input type="text" id="sname-3" placeholder="Sheet4" oninput="saveAdminSettings()" style="margin-bottom:0;font-size:.8rem;">
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;">
+            <div style="font-size:.7rem;color:var(--accent3);font-family:'JetBrains Mono',monospace;margin-bottom:6px;">シート5 <span style="color:var(--text3)">10%</span></div>
+            <input type="text" id="sname-4" placeholder="Sheet5" oninput="saveAdminSettings()" style="margin-bottom:0;font-size:.8rem;">
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;">
+            <div style="font-size:.7rem;color:var(--accent3);font-family:'JetBrains Mono',monospace;margin-bottom:6px;">シート6 <span style="color:var(--text3)">10%</span></div>
+            <input type="text" id="sname-5" placeholder="Sheet6" oninput="saveAdminSettings()" style="margin-bottom:0;font-size:.8rem;">
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="field" style="margin-bottom:0;max-width:160px;">
+            <label>合計出題数</label>
+            <input type="number" id="q-count" value="20" min="6" max="500" oninput="saveAdminSettings()">
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>管理者パスワード（変更する場合のみ入力）</label>
+        <div style="display:flex;gap:8px;">
+          <input type="password" id="new-password" placeholder="新しいパスワードを入力" style="flex:1;">
+          <button class="btn btn-ghost" onclick="changePassword()" style="white-space:nowrap;padding:10px 16px;font-size:.82rem;">変更</button>
+        </div>
+        <div style="font-size:.72rem;color:var(--text3);margin-top:5px;">※ 初期パスワードは <code>admin</code> です。必ず変更してください。</div>
+      </div>
+    </div>
+
+    <div class="card anim" style="animation-delay:.04s">
+      <div class="card-title">📊 スプレッドシートのフォーマット</div>
+      <div class="card-desc">1行目はヘッダーとして自動スキップ。<strong>H列＝回答・I列＝解説・J列＝問題画像</strong> は全タイプ共通です。</div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab(this,'t-choice')">4択 choice</button>
+        <button class="tab-btn" onclick="switchTab(this,'t-multi')">5択2選 multi</button>
+        <button class="tab-btn" onclick="switchTab(this,'t-dnd')">D&amp;D dnd</button>
+        <button class="tab-btn" onclick="switchTab(this,'t-img')">🖼️ 画像指定</button>
+      </div>
+      <div id="t-choice" class="tab-panel active">
+        <table class="fmt-table">
+          <thead><tr><th>列</th><th>役割</th><th>例</th></tr></thead>
+          <tbody>
+            <tr><td>A</td><td>問題タイプ</td><td><code>choice</code></td></tr>
+            <tr><td>B</td><td>問題文</td><td>TCPの特徴として正しいものはどれか？</td></tr>
+            <tr><td>C〜F</td><td>選択肢 A〜D</td><td>各選択肢のテキスト</td></tr>
+            <tr><td>G</td><td>（未使用）</td><td></td></tr>
+            <tr><td>H</td><td>回答（A〜D）</td><td><code>B</code></td></tr>
+            <tr><td>I</td><td>解説（任意）</td><td>TCPはコネクション型で再送制御あり。</td></tr>
+            <tr><td>J</td><td>問題画像（任意）</td><td>GoogleドライブID または URL</td></tr>
+            <tr><td>K〜N</td><td>選択肢 A〜D の画像（任意）</td><td>GoogleドライブID または URL</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="t-multi" class="tab-panel">
+        <table class="fmt-table">
+          <thead><tr><th>列</th><th>役割</th><th>例</th></tr></thead>
+          <tbody>
+            <tr><td>A</td><td>問題タイプ</td><td><code>multi</code></td></tr>
+            <tr><td>B</td><td>問題文</td><td>正しいものを2つ選べ。</td></tr>
+            <tr><td>C〜F</td><td>選択肢 A〜D</td><td>各選択肢のテキスト</td></tr>
+            <tr><td>G</td><td>選択肢 E（空欄で4択）</td><td>5択目のテキスト</td></tr>
+            <tr><td>H</td><td>回答（カンマ区切り、A〜E）</td><td><code>A,E</code></td></tr>
+            <tr><td>I</td><td>解説（任意）</td><td>A・Eが正しい定義。</td></tr>
+            <tr><td>J</td><td>問題画像（任意）</td><td>GoogleドライブID または URL</td></tr>
+            <tr><td>K〜O</td><td>選択肢 A〜E の画像（任意）</td><td>GoogleドライブID または URL</td></tr>
+          </tbody>
+        </table>
+        <div class="fmt-note">※ G列を空にすると4択（A〜D）になります。H列の回答は <code>A,C</code> のように A〜E のアルファベットで記入してください。</div>
+      </div>
+      <div id="t-dnd" class="tab-panel">
+        <table class="fmt-table">
+          <thead><tr><th>列</th><th>役割</th><th>例</th></tr></thead>
+          <tbody>
+            <tr><td>A</td><td>問題タイプ</td><td><code>dnd</code></td></tr>
+            <tr><td>B</td><td>問題文</td><td>プロトコルと用途を組み合わせよ。</td></tr>
+            <tr><td>C〜F</td><td>左ラベル 1〜4</td><td>SMTP / FTP / DNS / HTTP</td></tr>
+            <tr><td>G</td><td>左ラベル 5 または 右側選択肢（自動判定）</td><td>「=」を含まない→ラベル5個目<br>「=」を含む→右側選択肢（カンマ区切り）</td></tr>
+            <tr><td>H</td><td>回答（必ず「=」を含む）</td><td>1対1: <code>SMTP=メール送信,FTP=ファイル転送</code><br>1対多: <code>NW層=IP|ICMP,TR層=TCP|UDP</code></td></tr>
+            <tr><td>I</td><td>解説（任意）</td><td>SMTPはメール送信プロトコル...</td></tr>
+            <tr><td>J</td><td>問題画像（任意）</td><td>GoogleドライブID または URL</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="t-img" class="tab-panel">
+        <div style="font-size:.8rem;color:var(--text2);line-height:1.9;">
+          <strong style="color:var(--text);display:block;margin-bottom:10px;">🖼️ 画像の指定方法</strong>
+          <table class="fmt-table" style="margin-bottom:14px;">
+            <thead><tr><th>入力形式</th><th>例</th><th>備考</th></tr></thead>
+            <tbody>
+              <tr><td>Googleドライブ ファイルID</td><td><code>1aBcDeFgHiJkLmN...</code></td><td>IDのみ入力（推奨）</td></tr>
+              <tr><td>Googleドライブ 共有URL</td><td><code>https://drive.google.com/file/d/xxx/view</code></td><td>IDを自動抽出</td></tr>
+              <tr><td>直接画像URL</td><td><code>https://example.com/img.png</code></td><td>外部サイトの画像</td></tr>
+            </tbody>
+          </table>
+          <ol style="padding-left:1.2em;display:flex;flex-direction:column;gap:4px;">
+            <li>Googleドライブで画像ファイルを右クリック →「共有」</li>
+            <li>「リンクを知っている全員」→「閲覧者」に設定してURLをコピー</li>
+            <li>URLの <code>/d/</code> と <code>/view</code> の間の文字列がファイルID</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="card anim" style="animation-delay:.08s">
+      <div class="card-title">🧪 動作確認</div>
+      <div class="card-desc">スプレッドシートなしでもIT系サンプル問題で動作確認できます。</div>
+      <button class="btn btn-ghost" onclick="loadDemo()">💡 デモ問題で試す</button>
+    </div>
+
+  </div><!-- /admin-zone -->
+</div><!-- /setup-screen -->
+
+<!-- ══════════ QUIZ ══════════ -->
+<div id="quiz-screen">
+  <div class="prog-bar-bg anim"><div class="prog-bar-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="q-card anim">
+    <div class="q-header">
+      <div class="q-pill" id="q-pill">4択問題</div>
+      <div class="q-num-lbl" id="q-num">Q1</div>
+    </div>
+    <div class="q-text" id="q-text"></div>
+    <img id="q-img" class="q-img" style="display:none" alt="問題画像">
+    <div id="q-inst" class="q-inst" style="display:none"></div>
+    <div id="q-body"></div>
+  </div>
+  <div class="action-row">
+    <button class="btn btn-ghost" id="skip-btn" onclick="doSkip()">スキップ</button>
+    <button class="btn btn-primary" id="next-btn" onclick="doAnswerAndNext()" disabled>次の問題 →</button>
+  </div>
+</div>
+
+<!-- ══════════ RESULT ══════════ -->
+<div id="result-screen">
+  <div class="result-hero anim">
+    <div class="result-ring">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle cx="70" cy="70" r="58" fill="none" stroke="var(--surface2)" stroke-width="10"/>
+        <circle cx="70" cy="70" r="58" fill="none" stroke="url(#rg)" stroke-width="10"
+          stroke-dasharray="364" stroke-dashoffset="364" stroke-linecap="round" id="ring"/>
+        <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#6366f1"/>
+        </linearGradient></defs>
+      </svg>
+      <div class="res-pct" id="r-pct">0<span>%</span></div>
+    </div>
+    <div class="res-grade" id="r-grade">--</div>
+    <div class="res-stats">
+      <div class="rstat"><div class="rstat-val rv-ok" id="r-ok">0</div><div class="rstat-lbl">正解</div></div>
+      <div class="rstat"><div class="rstat-val rv-ng" id="r-ng">0</div><div class="rstat-lbl">不正解</div></div>
+      <div class="rstat"><div class="rstat-val rv-sk" id="r-sk">0</div><div class="rstat-lbl">スキップ</div></div>
+      <div class="rstat"><div class="rstat-val rv-t" id="r-pct2">0%</div><div class="rstat-lbl">正答率</div></div>
+    </div>
+  </div>
+  <div class="review-section anim" style="animation-delay:.08s">
+    <h3>📝 問題別振り返り（クリックで正解・解説を表示）</h3>
+    <div class="rev-list" id="rev-list"></div>
+  </div>
+  <div class="btn-row anim" style="animation-delay:.14s;justify-content:center;">
+    <button class="btn btn-ghost btn-lg" onclick="doRestart()">同じ問題で再挑戦</button>
+    <button class="btn btn-primary btn-lg" id="btn-back-to-setup" onclick="doSetup()">設定に戻る</button>
+  </div>
+</div>
+</main>
+
+<!-- ══════════ ADMIN PASSWORD MODAL ══════════ -->
+<div id="admin-modal" class="modal-overlay" style="display:none;" onclick="modalOverlayClick(event)">
+  <div class="modal-box">
+    <div class="modal-title">🔐 管理者モード</div>
+    <div class="modal-desc">管理者パスワードを入力してください。<br>初期パスワードは <code>admin</code> です（必ず変更してください）。</div>
+    <div class="field" style="margin-bottom:0">
+      <label>パスワード</label>
+      <input type="password" id="admin-pw-input" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')submitAdminPw()">
+    </div>
+    <div class="modal-err" id="modal-err">パスワードが違います</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" style="flex:1" onclick="submitAdminPw()">ログイン</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+//  画像URL変換
+// ══════════════════════════════════════
+function toImgSrc(val){
+  if(!val||!val.trim())return '';
+  val=val.trim();
+  if(val.startsWith('http')){
+    const m=val.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if(m)return `https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+    return val;
+  }
+  if(/^[a-zA-Z0-9_-]{10,}$/.test(val))
+    return `https://drive.google.com/thumbnail?id=${val}&sz=w800`;
+  return '';
+}
+
+// ══════════════════════════════════════
+//  DEMO DATA
+// ══════════════════════════════════════
+const DEMO=[
+  {type:'choice',text:'OSI参照モデルにおいて、トランスポート層は第何層か？',
+   choices:['第2層（データリンク層）','第3層（ネットワーク層）','第4層（トランスポート層）','第5層（セッション層）'],
+   answer:'C',exp:'トランスポート層はOSIモデルの第4層。TCPやUDPがこの層で動作する。',qImg:'',choiceImgs:['','','','']},
+  {type:'choice',text:'2進数「11011010」を16進数に変換した値はどれか？',
+   choices:['DA','DB','CA','CD'],answer:'A',
+   exp:'1101₂=D、1010₂=A → 16進数でDA。4ビットずつ区切って変換する。',qImg:'',choiceImgs:['','','','']},
+  {type:'choice',text:'TCP/IPのTCPプロトコルの特徴として正しいものはどれか？',
+   choices:['コネクションレス型でパケット順序は保証されない','コネクション確立後に信頼性のあるデータ転送を行う','リアルタイム性を重視し再送制御は行わない','IPアドレスを使ったルーティングを担当する'],
+   answer:'B',exp:'TCPはコネクション型。3ウェイハンドシェイクで接続確立し、順序制御・再送制御を提供する。',qImg:'',choiceImgs:['','','','']},
+  {type:'multi',text:'情報セキュリティの「CIA」に関する記述のうち、正しいものを2つ選べ。',
+   choices:['A：機密性(Confidentiality)とは、許可された者だけが情報にアクセスできることを指す',
+            'B：完全性(Integrity)とは、情報が常に暗号化されていることを指す',
+            'C：可用性(Availability)とは、必要なときに情報が利用できることを指す',
+            'D：機密性を高めるには冗長化が最も有効な手段である',
+            'E：完全性は情報が改ざんされていないことを保証する概念である'],
+   answers:['A','E'],exp:'CIA：機密性＝アクセス制御、完全性＝改ざん防止、可用性＝サービス継続性。',qImg:'',choiceImgs:['','','','','']},
+  {type:'multi',text:'オブジェクト指向プログラミングの特徴について、正しいものを2つ選べ。',
+   choices:['A：カプセル化とはデータと操作を一つのオブジェクトにまとめることである',
+            'B：継承とは複数のクラスが同一のメモリ領域を共有することである',
+            'C：ポリモーフィズムとは同じメソッド名で異なる動作をさせられる性質である',
+            'D：抽象化とは処理速度を向上させる最適化技術のことである',
+            'E：継承によってサブクラスはスーパークラスの属性やメソッドを引き継げる'],
+   answers:['A','C'],exp:'OOPの三大特性：カプセル化・継承・ポリモーフィズム。',qImg:'',choiceImgs:['','','','','']},
+  {type:'dnd',text:'次のソートアルゴリズムと平均時間計算量を正しく組み合わせよ。',
+   labels:['バブルソート','クイックソート','マージソート'],
+   options:['O(n²)','O(n log n)','O(1)','O(log n)'],
+   correctMap:{'バブルソート':['O(n²)'],'クイックソート':['O(n log n)'],'マージソート':['O(n log n)']},
+   exp:'バブルソートはO(n²)。クイックソート・マージソートの平均はO(n log n)。',qImg:''},
+  {type:'dnd',text:'次のOSIモデルの各層に該当するプロトコルをすべてドロップせよ。（1対多の例）',
+   labels:['ネットワーク層','トランスポート層','アプリケーション層'],
+   options:['IP','ICMP','TCP','UDP','HTTP','DNS','Ethernet'],
+   correctMap:{'ネットワーク層':['IP','ICMP'],'トランスポート層':['TCP','UDP'],'アプリケーション層':['HTTP','DNS']},
+   exp:'ネットワーク層=IP・ICMP、トランスポート層=TCP・UDP、アプリケーション層=HTTP・DNS。Ethernetはデータリンク層。',qImg:''},
+  {type:'choice',text:'関係データベースにおいてNULLを含む比較演算の結果はどれか？',
+   choices:['常にTRUE','常にFALSE','常にUNKNOWN','比較不能でエラーになる'],
+   answer:'C',exp:'NULL同士や値とNULLの比較は3値論理でUNKNOWNになる。IS NULLで判定する。',qImg:'',choiceImgs:['','','','']},
+];
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let allQ=[],session=[],idx=0,okCnt=0,ngCnt=0,skipCnt=0,history=[],answered=false;
+let dragSrc=null,timerInterval=null,timerLeft=0;
+
+// ══════════════════════════════════════
+//  GAS JSONP
+// ══════════════════════════════════════
+function fetchSheet(gasUrl,name){
+  return new Promise((resolve,reject)=>{
+    const cb='__gasCb_'+Date.now();
+    const timer=setTimeout(()=>{cleanup();reject(new Error('network:timeout'));},12000);
+    function cleanup(){
+      clearTimeout(timer);delete window[cb];
+      const s=document.getElementById('__gasScript');if(s)s.remove();
+    }
+    window[cb]=function(data){
+      cleanup();
+      if(data&&data.error){reject(new Error('gas:'+data.error));return;}
+      if(!Array.isArray(data)){reject(new Error('parse'));return;}
+      const rows=data.slice(1)
+        .filter(r=>r.some(c=>String(c).trim()))
+        .map(r=>r.map(c=>String(c).trim()));
+      if(!rows.length){reject(new Error('no-rows'));return;}
+      resolve(rows);
+    };
+    let url=`${gasUrl}?callback=${cb}`;
+    if(name)url+=`&sheet=${encodeURIComponent(name)}`;
+    const script=document.createElement('script');
+    script.id='__gasScript';script.src=url;
+    script.onerror=()=>{cleanup();reject(new Error('network:script load failed'));};
+    document.head.appendChild(script);
+  });
+}
+
+// ══════════════════════════════════════
+//  列マッピング
+//  共通: A=type B=問題文 H=回答 I=解説 J=問題画像
+//  choice: C~F=選択肢A~D G=未使用 K~N=選択肢画像A~D
+//  multi:  C~F=ア~エ G=オ(空欄で4択) K~O=選択肢画像
+//  dnd:    C~F=ラベル1~4
+//          G: 「=」含まない→ラベル5個目 / 「=」含む→右選択肢カンマ区切り
+//          H: 回答（必ず「=」含む）例: SMTP=メール送信,NW層=IP|ICMP
+// ══════════════════════════════════════
+function rowsToQ(rows){
+  return rows.map(r=>{
+    const type=(r[0]||'').toLowerCase().trim();
+    if(type==='choice'){
+      return{type:'choice',text:r[1]||'',
+             choices:[r[2]||'',r[3]||'',r[4]||'',r[5]||''],
+             answer:(r[7]||'A').trim().toUpperCase(),
+             exp:r[8]||'',
+             qImg:toImgSrc(r[9]||''),
+             choiceImgs:[r[10],r[11],r[12],r[13]].map(v=>toImgSrc(v||''))};
+    }
+    if(type==='multi'){
+      const choices=[r[2],r[3],r[4],r[5],r[6]].filter(Boolean);
+      return{type:'multi',text:r[1]||'',choices,
+             answers:(r[7]||'').split(',').map(s=>s.trim()).filter(Boolean),
+             exp:r[8]||'',
+             qImg:toImgSrc(r[9]||''),
+             choiceImgs:[r[10],r[11],r[12],r[13],r[14]].map(v=>toImgSrc(v||''))};
+    }
+    if(type==='dnd'){
+      const baseLbls=[r[2],r[3],r[4],r[5]].filter(Boolean);
+      const gVal=(r[6]||'').trim();
+      const hVal=(r[7]||'').trim();
+      // G列の自動判定: 「=」を含まない→ラベル5個目, 含む→右選択肢
+      let labels,optsStr;
+      if(gVal&&!gVal.includes('=')){
+        labels=[...baseLbls,gVal];
+        optsStr=''; // 右選択肢は回答から自動生成
+      }else{
+        labels=baseLbls;
+        optsStr=gVal;
+      }
+      const cm={};
+      hVal.split(',').forEach(p=>{
+        const eq=p.indexOf('=');if(eq<0)return;
+        const k=p.slice(0,eq).trim();
+        const vals=p.slice(eq+1).split('|').map(s=>s.trim()).filter(Boolean);
+        if(k&&vals.length)cm[k]=vals;
+      });
+      // 右選択肢: 指定があればそれを使用、なければ正解値から自動生成
+      const opts=optsStr
+        ?optsStr.split(',').map(s=>s.trim()).filter(Boolean)
+        :[...new Set(Object.values(cm).flat())];
+      return{type:'dnd',text:r[1]||'',labels,options:opts,correctMap:cm,
+             exp:r[8]||'',qImg:toImgSrc(r[9]||'')};
+    }
+    return null;
+  }).filter(Boolean);
+}
+
+// ══════════════════════════════════════
+//  TIMER
+// ══════════════════════════════════════
+function startTimer(totalSec){
+  clearInterval(timerInterval);timerLeft=totalSec;
+  if(totalSec<=0){document.getElementById('hdr-timer').textContent='∞';return;}
+  renderTimer();
+  timerInterval=setInterval(()=>{
+    timerLeft--;renderTimer();
+    if(timerLeft<=0){clearInterval(timerInterval);toast('⏰ 時間切れ！');setTimeout(()=>showResult(true),800);}
+  },1000);
+}
+function renderTimer(){
+  const el=document.getElementById('hdr-timer');
+  const m=Math.floor(timerLeft/60),s=timerLeft%60;
+  el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  el.className='';
+  if(timerLeft<=30)el.className='danger';
+  else if(timerLeft<=120)el.className='warn';
+}
+function stopTimer(){clearInterval(timerInterval);}
+
+// ══════════════════════════════════════
+//  CONTROL
+// ══════════════════════════════════════
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function show(id){document.getElementById(id).style.display='flex';}
+function hide(id){document.getElementById(id).style.display='none';}
+function loadDemo(){beginSession(shuffle(DEMO).slice(0,Math.min(8,DEMO.length)));}
+
+// 各シートの出題割合（合計1.0）
+const SHEET_RATIOS = [0.25, 0.20, 0.20, 0.15, 0.10, 0.10];
+
+// 按分計算（四捨五入のみ・合計多少ずれてもOK）
+function calcAllocations(totalCnt, ratios, available){
+  return ratios.map((r, i) =>
+    Math.min(Math.round(r * totalCnt), available[i])
+  );
+}
+
+async function startQuiz(){
+  const gasUrl  = localStorage.getItem(STORAGE_KEY_URL) || '';
+  const totalCnt = parseInt(localStorage.getItem('cbt_q_count')) || 20;
+  const savedNames = JSON.parse(localStorage.getItem('cbt_sheet_names') || 'null')
+                     || ['Sheet1','Sheet2','Sheet3','Sheet4','Sheet5','Sheet6'];
+  const errEl = document.getElementById('url-err');
+  errEl.style.display = 'none';
+
+  if(!gasUrl){
+    errEl.textContent = '❌ GAS URLが設定されていません。管理者モードで設定してください。';
+    errEl.style.display = 'block'; return;
+  }
+
+  const btn = document.getElementById('start-btn');
+  const lbl = document.getElementById('start-label');
+  btn.disabled = true;
+  lbl.innerHTML = '<div class="spinner"></div>';
+
+  try{
+    // 有効なシート名（空でないもの）のみフェッチ
+    const fetchResults = await Promise.allSettled(
+      savedNames.map(name => name.trim() ? fetchSheet(gasUrl, name.trim()) : Promise.resolve([]))
+    );
+
+    // 各シートの問題リストを構築
+    const sheetQs = fetchResults.map(r =>
+      r.status === 'fulfilled' ? rowsToQ(r.value) : []
+    );
+
+    const available = sheetQs.map(qs => qs.length);
+    const totalAvail = available.reduce((s,v)=>s+v, 0);
+    if(!totalAvail) throw new Error('no-questions');
+
+    // 按分計算
+    const alloc = calcAllocations(Math.min(totalCnt, totalAvail), SHEET_RATIOS, available);
+
+    // 各シートからランダム抽出して結合
+    const picked = sheetQs.flatMap((qs, i) =>
+      alloc[i] > 0 ? shuffle(qs).slice(0, alloc[i]) : []
+    );
+
+    // 全体をシャッフルしてセッション開始
+    beginSession(shuffle(picked));
+
+  }catch(e){
+    const msg = e.message || '';
+    let detail = '';
+    if(msg.includes('network'))       detail = 'ネットワークエラー。GAS URLとインターネット接続を確認してください。';
+    else if(msg.includes('no-questions')) detail = '問題を読み込めませんでした。シート名とデータを確認してください。';
+    else                               detail = '読み込み失敗（' + msg + '）。GAS URLとデプロイ設定を確認してください。';
+    errEl.textContent = '❌ ' + detail;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    lbl.textContent = '▶ 試験を開始する';
+  }
+}
+
+function beginSession(pickedQ){
+  session = pickedQ;
+  idx=0;okCnt=0;ngCnt=0;skipCnt=0;history=[];answered=false;
+  const min=parseInt(document.getElementById('timer-min').value)||0;
+  const sec=parseInt(document.getElementById('timer-sec').value)||0;
+  hide('setup-screen');hide('result-screen');show('quiz-screen');
+  document.getElementById('hdr-quiz').style.display='flex';
+  document.getElementById('hdr-badge').style.display='none';
+  // 開始ボタンをリセット
+  document.getElementById('start-btn').disabled=false;
+  document.getElementById('start-label').textContent='▶ 試験を開始する';
+  startTimer(min*60+sec);renderQ();
+}
+
+// ══════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════
+const K4=['A','B','C','D'];
+const K5=['A','B','C','D','E']; // multiも A〜E で統一
+
+function renderQ(){
+  answered=false;
+  const q=session[idx],total=session.length;
+  document.getElementById('prog-fill').style.width=(idx/total*100)+'%';
+  document.getElementById('hdr-qnum').textContent=`${idx+1} / ${total}`;
+  document.getElementById('q-num').textContent=`Q${idx+1}`;
+  document.getElementById('q-text').textContent=q.text;
+  // 問題画像
+  const qImgEl=document.getElementById('q-img');
+  if(q.qImg){qImgEl.src=q.qImg;qImgEl.style.display='block';}
+  else{qImgEl.style.display='none';qImgEl.src='';}
+
+  const pill=document.getElementById('q-pill'),inst=document.getElementById('q-inst');
+  if(q.type==='choice'){
+    pill.textContent='4択問題';pill.className='q-pill pill-c';inst.style.display='none';
+  }else if(q.type==='multi'){
+    pill.textContent='5択・2問選択';pill.className='q-pill pill-m';
+    inst.style.display='flex';inst.textContent='⚠️ 正しいものを2つ選んでから「次の問題」を押してください';
+  }else{
+    pill.textContent='ドラッグ＆ドロップ';pill.className='q-pill pill-d';
+    inst.style.display='flex';inst.textContent='🖱️ 選択肢を正しい項目へドラッグしてください';
+  }
+  document.getElementById('next-btn').disabled=true;
+  document.getElementById('next-btn').textContent=idx+1<session.length?'次の問題 →':'結果を見る';
+  document.getElementById('skip-btn').style.display='inline-flex';
+
+  if(q.type==='choice')renderChoice(q);
+  else if(q.type==='multi')renderMulti(q);
+  else renderDnD(q);
+}
+
+function renderChoice(q){
+  document.getElementById('q-body').innerHTML=`<div class="choices">${
+    q.choices.map((c,i)=>{
+      const img=q.choiceImgs&&q.choiceImgs[i]
+        ?`<img class="choice-img" src="${q.choiceImgs[i]}" alt="選択肢${K4[i]}の画像">`:'';
+      return `<button class="choice-btn" data-key="${K4[i]}" onclick="selChoice(this)">
+        <span class="ck">${K4[i]}</span>
+        <div class="choice-content"><span>${c}</span>${img}</div>
+      </button>`;
+    }).join('')}</div>`;
+}
+function selChoice(el){
+  if(answered)return;
+  document.querySelectorAll('.choice-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');document.getElementById('next-btn').disabled=false;
+}
+
+function renderMulti(q){
+  const keys=q.choices.length>=5?K5:K4;
+  document.getElementById('q-body').innerHTML=`<div class="choices">${
+    q.choices.map((c,i)=>{
+      const img=q.choiceImgs&&q.choiceImgs[i]
+        ?`<img class="choice-img" src="${q.choiceImgs[i]}" alt="選択肢${keys[i]}の画像">`:'';
+      return `<button class="choice-btn" data-key="${keys[i]}" onclick="selMulti(this)">
+        <div class="chk">✓</div>
+        <span class="ck" style="background:var(--surface3);color:var(--text3)">${keys[i]}</span>
+        <div class="choice-content"><span>${c}</span>${img}</div>
+      </button>`;
+    }).join('')}</div>`;
+}
+function selMulti(el){
+  if(answered)return;
+  if(el.classList.contains('sel')){el.classList.remove('sel');}
+  else{
+    if(document.querySelectorAll('.choice-btn.sel').length>=2){toast('2つまで選択できます');return;}
+    el.classList.add('sel');
+  }
+  document.getElementById('next-btn').disabled=(document.querySelectorAll('.choice-btn.sel').length!==2);
+}
+
+function renderDnD(q){
+  const shuffled=shuffle(q.options);
+  document.getElementById('q-body').innerHTML=`
+  <div class="dnd-area">
+    <div>
+      <div class="dnd-sec-lbl">選択肢（ドラッグして右の枠へ）</div>
+      <div class="dnd-bank" id="dnd-bank"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="dropBank(event)">
+        ${shuffled.map(o=>`<div class="dnd-chip" draggable="true" data-val="${o}"
+          ondragstart="dndStart(event,this)">${o}</div>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="dnd-sec-lbl">組み合わせ</div>
+      <div class="dnd-targets">
+        ${q.labels.map(l=>{
+          const need=(q.correctMap[l]||[]).length||1;
+          const ph=need>1?`${need}個ドロップ`:'ここへドロップ';
+          const badge=need>1?` <span style="font-size:.64rem;color:var(--accent3);font-family:'JetBrains Mono',monospace">[×${need}]</span>`:'';
+          return `<div class="dnd-row">
+            <div class="dnd-lbl">${l}${badge}</div>
+            <div class="dnd-zone" data-label="${l}" data-max="${need}"
+              ondragover="dndOver(event)"
+              ondragleave="event.currentTarget.classList.remove('drag-over')"
+              ondrop="dropZone(event,this)">
+              <span class="ph">${ph}</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+  checkDnD();
+}
+function dndStart(e,el){dragSrc=el;el.classList.add('dragging');e.dataTransfer.setData('text/plain',el.dataset.val);}
+function dndOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
+function dropZone(e,zone){
+  e.preventDefault();zone.classList.remove('drag-over');if(!dragSrc)return;
+  const max=parseInt(zone.dataset.max)||1;
+  if(zone.querySelectorAll('.dnd-chip').length>=max){
+    const first=zone.querySelector('.dnd-chip');
+    if(first)document.getElementById('dnd-bank').appendChild(first);
+  }
+  dragSrc.classList.remove('dragging');zone.appendChild(dragSrc);
+  const ph=zone.querySelector('.ph');if(ph)ph.style.display='none';
+  dragSrc=null;checkDnD();
+}
+function dropBank(e){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');if(!dragSrc)return;
+  dragSrc.classList.remove('dragging');
+  document.getElementById('dnd-bank').appendChild(dragSrc);dragSrc=null;checkDnD();
+}
+function checkDnD(){
+  const allFull=[...document.querySelectorAll('.dnd-zone')].every(z=>{
+    return z.querySelectorAll('.dnd-chip').length===(parseInt(z.dataset.max)||1);
+  });
+  document.getElementById('next-btn').disabled=!allFull;
+}
+
+// ══════════════════════════════════════
+//  ANSWER & NEXT
+// ══════════════════════════════════════
+function doAnswerAndNext(){
+  if(!answered){
+    answered=true;
+    const q=session[idx];let isOk=false,userAns=null;
+    if(q.type==='choice'){
+      const sel=document.querySelector('.choice-btn.sel');if(!sel)return;
+      userAns=sel.dataset.key;isOk=userAns===q.answer;
+      document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+    }else if(q.type==='multi'){
+      const selKeys=[...document.querySelectorAll('.choice-btn.sel')].map(b=>b.dataset.key);
+      userAns=selKeys;
+      const cor=[...q.answers].sort();
+      isOk=selKeys.length===cor.length&&[...selKeys].sort().every((v,i)=>v===cor[i]);
+      document.querySelectorAll('.choice-btn').forEach(b=>b.disabled=true);
+    }else{
+      const zoneMap={};
+      document.querySelectorAll('.dnd-zone').forEach(z=>{
+        zoneMap[z.dataset.label]=[...z.querySelectorAll('.dnd-chip')].map(c=>c.dataset.val);
+      });
+      userAns=zoneMap;
+      isOk=q.labels.every(l=>{
+        const got=[...(zoneMap[l]||[])].sort();
+        const exp=[...(q.correctMap[l]||[])].sort();
+        return got.length===exp.length&&got.every((v,i)=>v===exp[i]);
+      });
+      document.querySelectorAll('.dnd-chip').forEach(c=>{c.setAttribute('draggable','false');c.classList.add('locked');});
+    }
+    if(isOk)okCnt++;else ngCnt++;
+    history.push({q,isOk,userAns});
+  }
+  idx++;
+  if(idx>=session.length){showResult(false);return;}
+  renderQ();
+}
+function doSkip(){
+  history.push({q:session[idx],isOk:false,userAns:null,skipped:true});
+  skipCnt++;ngCnt++;idx++;
+  if(idx>=session.length){showResult(false);return;}
+  renderQ();
+}
+
+// ══════════════════════════════════════
+//  RESULT
+// ══════════════════════════════════════
+function showResult(timeout){
+  stopTimer();hide('quiz-screen');show('result-screen');
+  document.getElementById('hdr-quiz').style.display='none';
+  document.getElementById('hdr-badge').style.display='';
+  document.getElementById('hdr-badge').textContent='結果';
+  const total=session.length,pct=Math.round(okCnt/total*100);
+  document.getElementById('r-pct').innerHTML=`${pct}<span>%</span>`;
+  document.getElementById('r-ok').textContent=okCnt;
+  document.getElementById('r-ng').textContent=ngCnt;
+  document.getElementById('r-sk').textContent=skipCnt;
+  document.getElementById('r-pct2').textContent=pct+'%';
+  const g=document.getElementById('r-grade');
+  if(pct>=90){g.textContent='S ランク 🏆';g.className='res-grade gs';}
+  else if(pct>=70){g.textContent='A ランク ✨';g.className='res-grade ga';}
+  else if(pct>=50){g.textContent='B ランク 📘';g.className='res-grade gb';}
+  else{g.textContent='C ランク 📖';g.className='res-grade gc';}
+  setTimeout(()=>{
+    const ring=document.getElementById('ring');
+    ring.style.transition='stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)';
+    ring.style.strokeDashoffset=364-(pct/100)*364;
+  },80);
+  if(timeout)
+    for(let i=idx;i<session.length;i++)
+      history.push({q:session[i],isOk:false,userAns:null,skipped:true,timeout:true});
+  const tl={choice:'4択',multi:'5択2問',dnd:'D&D'};
+  document.getElementById('rev-list').innerHTML=history.map((h,i)=>buildRevItem(h,i,tl)).join('');
+}
+
+function buildRevItem(h,i,tl){
+  const q=h.q,icon=h.isOk?'✅':'❌',cls=h.isOk?'ok':'ng';
+  const skip=h.skipped?` <span style="font-size:.7rem;color:var(--text3)">(${h.timeout?'時間切れ':'スキップ'})</span>`:'';
+  let detail='';
+  if(q.type==='choice'){
+    detail=`<div class="rev-choices">${q.choices.map((c,ci)=>{
+      const k=K4[ci];
+      const isAns=k===q.answer,isSel=h.userAns===k;
+      let c2='rk-neu';
+      if(isAns&&isSel)c2='rk-ok';else if(!isAns&&isSel)c2='rk-ng';else if(isAns)c2='rk-ok';
+      const img=q.choiceImgs&&q.choiceImgs[ci]?`<img class="rev-img" src="${q.choiceImgs[ci]}" alt="">`:'';
+      return `<div class="rev-choice ${c2}"><span class="ck-sm">${k}</span><div style="flex:1">${c}${isAns?' ✓':''}${img}</div></div>`;
+    }).join('')}</div>`;
+  }else if(q.type==='multi'){
+    const keys=q.choices.length>=5?K5:K4;
+    detail=`<div class="rev-choices">${q.choices.map((c,ci)=>{
+      const k=keys[ci];
+      const isAns=q.answers.includes(k),isSel=Array.isArray(h.userAns)&&h.userAns.includes(k);
+      let c2='rk-neu';
+      if(isAns&&isSel)c2='rk-ok';else if(!isAns&&isSel)c2='rk-ng';else if(isAns)c2='rk-ok';
+      const img=q.choiceImgs&&q.choiceImgs[ci]?`<img class="rev-img" src="${q.choiceImgs[ci]}" alt="">`:'';
+      return `<div class="rev-choice ${c2}"><span class="ck-sm">${k}</span><div style="flex:1">${c}${isAns?' ✓':''}${img}</div></div>`;
+    }).join('')}</div>`;
+  }else{
+    detail=`<div class="rev-dnd-list">${q.labels.map(l=>{
+      const corrects=q.correctMap[l]||[];
+      const users=(h.userAns&&h.userAns[l])||[];
+      const ok=[...corrects].sort().join(',')===[...users].sort().join(',');
+      return `<div class="rev-dnd-row">
+        <div class="rev-dnd-lbl">${l}</div>
+        <span style="color:var(--text3)">→</span>
+        <div class="rev-dnd-val ${ok?'ok':'ng'}">${corrects.join('・')}</div>
+        ${!ok&&users.length?`<div style="font-size:.72rem;color:var(--text3)">（あなた: ${users.join('・')}）</div>`:''}
+      </div>`;
+    }).join('')}</div>`;
+  }
+  const qImgHtml=q.qImg?`<img class="rev-img" src="${q.qImg}" alt="問題画像" style="margin-top:10px;">`:'';
+  const expHtml=q.exp?`<div class="rev-exp"><strong>💡 解説：</strong>${q.exp}</div>`:'';
+  return `<div class="rev-item ${cls}" id="rev-${i}">
+    <div class="rev-header" onclick="toggleRev(${i})">
+      <div class="rev-icon">${icon}</div>
+      <div class="rev-qtext">${i+1}. ${q.text}${skip}</div>
+      <div class="rev-type-tag">${tl[q.type]||q.type}</div>
+      <div class="rev-chevron">▶</div>
+    </div>
+    <div class="rev-detail">${qImgHtml}${detail}${expHtml}</div>
+  </div>`;
+}
+function toggleRev(i){document.getElementById('rev-'+i).classList.toggle('open');}
+function doRestart(){
+  hide('result-screen');show('quiz-screen');
+  document.getElementById('hdr-quiz').style.display='flex';
+  document.getElementById('hdr-badge').style.display='none';
+  session=shuffle(session);idx=0;okCnt=0;ngCnt=0;skipCnt=0;history=[];answered=false;
+  const min=parseInt(document.getElementById('timer-min').value)||0;
+  const sec=parseInt(document.getElementById('timer-sec').value)||0;
+  startTimer(min*60+sec);renderQ();
+}
+function doSetup(){
+  stopTimer();
+  hide('result-screen');
+  show('setup-screen');
+  document.getElementById('hdr-quiz').style.display='none';
+  document.getElementById('hdr-badge').style.display='inline-flex';
+  applyMode();
+}
+
+// ══════════════════════════════════════
+//  ADMIN MODE
+// ══════════════════════════════════════
+const STORAGE_KEY_PW   = 'cbt_admin_pw';
+const STORAGE_KEY_URL  = 'cbt_gas_url';
+const DEFAULT_PW       = 'admin';
+
+let isAdminMode = false;
+
+// ハッシュ（簡易）：平文パスワードをlocalStorageに保存するのは避けるため
+// ここでは簡易的にbtoa+saltで難読化
+function hashPw(pw){ return btoa('cbt::'+pw); }
+function getSavedPw(){ return localStorage.getItem(STORAGE_KEY_PW)||hashPw(DEFAULT_PW); }
+
+function applyMode(){
+  const adminZone       = document.getElementById('admin-zone');
+  const btnBackToSetup  = document.getElementById('btn-back-to-setup');
+  const hdrAdminBtn     = document.getElementById('hdr-admin-btn');
+  const hdrBadge        = document.getElementById('hdr-badge');
+  const notConfigured   = document.getElementById('user-not-configured');
+  const urlInput        = document.getElementById('sheet-url');
+  const countInput      = document.getElementById('q-count');
+
+  const savedUrl    = localStorage.getItem(STORAGE_KEY_URL) || '';
+  const savedCount  = localStorage.getItem('cbt_q_count')   || '20';
+  const savedNames  = JSON.parse(localStorage.getItem('cbt_sheet_names') || 'null')
+                      || ['Sheet1','Sheet2','Sheet3','Sheet4','Sheet5','Sheet6'];
+
+  if(isAdminMode){
+    adminZone.style.display = 'flex';
+    if(btnBackToSetup) btnBackToSetup.style.display = 'inline-flex';
+    hdrAdminBtn.textContent = '🔓 管理者モード中';
+    hdrAdminBtn.style.color = 'var(--accent2)';
+    hdrAdminBtn.style.borderColor = 'rgba(99,102,241,.3)';
+    hdrBadge.innerHTML = 'STANDBY <span class="admin-badge">ADMIN</span>';
+    if(urlInput)   urlInput.value   = savedUrl;
+    if(countInput) countInput.value = savedCount;
+    savedNames.forEach((n,i) => {
+      const el = document.getElementById(`sname-${i}`);
+      if(el) el.value = n;
+    });
+  } else {
+    adminZone.style.display = 'none';
+    if(btnBackToSetup) btnBackToSetup.style.display = 'inline-flex';
+    hdrAdminBtn.textContent = '⚙️ 管理者';
+    hdrAdminBtn.style.color = '';
+    hdrAdminBtn.style.borderColor = '';
+    hdrBadge.textContent = 'STANDBY';
+    if(notConfigured) notConfigured.style.display = savedUrl ? 'none' : 'block';
+  }
+  hdrAdminBtn.style.display = 'inline-flex';
+}
+
+function toggleAdminMode(){
+  if(isAdminMode){
+    // ログアウト
+    isAdminMode = false;
+    applyMode();
+    toast('管理者モードを終了しました');
+  } else {
+    // ログインモーダルを表示
+    document.getElementById('admin-pw-input').value = '';
+    document.getElementById('modal-err').style.display = 'none';
+    document.getElementById('admin-modal').style.display = 'flex';
+    setTimeout(()=>document.getElementById('admin-pw-input').focus(), 50);
+  }
+}
+
+function submitAdminPw(){
+  const input = document.getElementById('admin-pw-input').value;
+  const errEl = document.getElementById('modal-err');
+  if(hashPw(input) === getSavedPw()){
+    isAdminMode = true;
+    closeModal();
+    applyMode();
+    toast('管理者モードでログインしました');
+  } else {
+    errEl.style.display = 'block';
+    document.getElementById('admin-pw-input').select();
+  }
+}
+
+function closeModal(){
+  document.getElementById('admin-modal').style.display = 'none';
+}
+
+function modalOverlayClick(e){
+  if(e.target === document.getElementById('admin-modal')) closeModal();
+}
+
+function saveAdminSettings(){
+  const url = (document.getElementById('sheet-url')?.value||'').trim();
+  if(url) localStorage.setItem(STORAGE_KEY_URL, url);
+  const count = (document.getElementById('q-count')?.value||'20').trim();
+  localStorage.setItem('cbt_q_count', count);
+  // 6シート名を配列で保存
+  const names = Array.from({length:6}, (_,i) => {
+    const el = document.getElementById(`sname-${i}`);
+    return el ? el.value.trim() : '';
+  });
+  localStorage.setItem('cbt_sheet_names', JSON.stringify(names));
+}
+
+function changePassword(){
+  const newPw = (document.getElementById('new-password').value||'').trim();
+  if(!newPw){ toast('パスワードを入力してください'); return; }
+  if(newPw.length < 4){ toast('4文字以上のパスワードを設定してください'); return; }
+  localStorage.setItem(STORAGE_KEY_PW, hashPw(newPw));
+  document.getElementById('new-password').value = '';
+  toast('パスワードを変更しました ✓');
+}
+
+// 初期化：DOMContentLoaded時にユーザーモードで表示
+document.addEventListener('DOMContentLoaded', function(){
+  const gasEl = document.getElementById('gas-code');
+  if(gasEl) gasEl.value = GAS_CODE;
+  // ユーザーモードで初期表示
+  isAdminMode = false;
+  applyMode();
+});
+
+// ══════════════════════════════════════
+//  GAS CODE
+// ══════════════════════════════════════
+const GAS_CODE=[
+  'function doGet(e) {',
+  '  var callback = e.parameter.callback || null;',
+  '  var sheetName = e.parameter.sheet || null;',
+  '  var ss = SpreadsheetApp.getActiveSpreadsheet();',
+  '  var sheet = sheetName ? ss.getSheetByName(sheetName) : ss.getSheets()[0];',
+  '  var result;',
+  '  if (!sheet) {',
+  '    result = JSON.stringify({ error: "Sheet not found" });',
+  '  } else {',
+  '    var values = sheet.getDataRange().getValues();',
+  '    result = JSON.stringify(values);',
+  '  }',
+  '  if (callback) {',
+  '    return ContentService.createTextOutput(callback + "(" + result + ")")',
+  '      .setMimeType(ContentService.MimeType.JAVASCRIPT);',
+  '  }',
+  '  return ContentService.createTextOutput(result)',
+  '    .setMimeType(ContentService.MimeType.JSON);',
+  '}'
+].join('\n');
+
+function copyGasCode(){
+  navigator.clipboard.writeText(GAS_CODE)
+    .then(()=>toast('GASコードをコピーしました ✓'))
+    .catch(()=>{
+      const el=document.getElementById('gas-code');el.select();
+      document.execCommand('copy');toast('GASコードをコピーしました ✓');
+    });
+}
+function toast(msg,ms=2600){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),ms);
+}
+function switchTab(btn,id){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');document.getElementById(id).classList.add('active');
+}
+Object.assign(window,{
+  selChoice,selMulti,dndStart,dndOver,dropZone,dropBank,
+  doAnswerAndNext,doSkip,startQuiz,loadDemo,
+  doRestart,doSetup,switchTab,toggleRev,copyGasCode,
+  toggleAdminMode,submitAdminPw,closeModal,modalOverlayClick,
+  saveAdminSettings,changePassword
+});
+</script>
+</body>
+</html>
